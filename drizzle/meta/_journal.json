@@ -8,6 +8,13 @@
       "when": 1736778290092,
       "tag": "0000_parallel_zuras",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1736961477060,
+      "tag": "0001_perfect_gateway",
+      "breakpoints": true
     }
   ]
 }
