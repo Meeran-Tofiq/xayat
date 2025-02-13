@@ -89,10 +89,10 @@ export default function TailorCard({
 const styles = StyleSheet.create({
   cardContainer: {
     borderRadius: 10,
-    borderColor: "#4552CB",
-    borderWidth: 2,
     padding: 10,
     backgroundColor: "white",
+    elevation: 3,
+    margin: 4,
   },
   mainInfoContainer: {
     flexDirection: "row",
