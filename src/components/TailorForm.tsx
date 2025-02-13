@@ -1,29 +1,40 @@
 import React from "react";
 import { useForm, Controller, SubmitHandler } from "react-hook-form";
+import { TouchableOpacity } from "react-native";
 import { Button, StyleSheet, Text, TextInput, View } from "react-native";
-import { useDatabase } from "../context/DatabaseProvider";
-import { tailorsTable } from "@/db/schema";
 
-interface TailorFormInputs {
+export interface TailorFormInputs {
   name: string;
   phone?: string;
   notes?: string;
 }
 
-export default function TailorForm() {
-  const { db } = useDatabase();
+interface TailorFormProps {
+  initialValues?: TailorFormInputs;
+  onSubmit: (data: TailorFormInputs) => Promise<void>;
+}
+
+export default function TailorForm({
+  initialValues,
+  onSubmit,
+}: TailorFormProps) {
   const {
     control,
     handleSubmit,
     formState: { errors },
-  } = useForm<TailorFormInputs>();
+  } = useForm<TailorFormInputs>({
+    defaultValues: initialValues || {
+      name: "",
+      notes: "",
+      phone: "",
+    },
+  });
 
   const handleFormSubmit: SubmitHandler<TailorFormInputs> = async (data) => {
     try {
-      await db.insert(tailorsTable).values(data);
-      console.log("Tailor added successfully:", data);
+      await onSubmit(data);
     } catch (error) {
-      console.error("Error adding tailor:", error);
+      console.error("Error inside tailor form:", error);
     }
   };
 
@@ -32,7 +43,7 @@ export default function TailorForm() {
       <Controller
         control={control}
         name="name"
-        rules={{ required: "You must enter the name of the tailor" }}
+        rules={{ required: "The name of the tailor is required." }}
         render={({ field: { onChange, onBlur, value } }) => (
           <TextInput
             style={styles.textInput}
@@ -73,7 +84,12 @@ export default function TailorForm() {
         )}
       />
 
-      <Button title="Submit" onPress={handleSubmit(handleFormSubmit)} />
+      <TouchableOpacity
+        onPress={handleSubmit(handleFormSubmit)}
+        style={styles.submitContainer}
+      >
+        <Text style={styles.submitText}>Submit</Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -93,4 +109,9 @@ const styles = StyleSheet.create({
     color: "red",
     marginBottom: 8,
   },
+  submitText: {
+    textAlign: "center",
+    color: "blue",
+  },
+  submitContainer: {},
 });
