@@ -40,7 +40,11 @@ export default function TailorsScreen() {
       <ScrollView>
         {tailors.map((tailor) => (
           <View key={tailor.id} style={{ marginBottom: 5 }}>
-            <TailorCard tailor={tailor} key={tailor.id} />
+            <TailorCard
+              tailor={tailor}
+              key={tailor.id}
+              updateFunction={updateListOfTailors}
+            />
           </View>
         ))}
         <TouchableOpacity

@@ -2,18 +2,26 @@ import React, { useState } from "react";
 import { tailorsTable } from "@/db/schema";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useDatabase } from "@/src/context/DatabaseProvider";
-import ModalWrapper from "./ModalWrapper";
+import ModalWrapper from "@/src/components/ModalWrapper";
+import { eq } from "drizzle-orm";
 
 interface TailorCardProps {
   tailor: typeof tailorsTable.$inferSelect;
+  updateFunction: () => void;
 }
 
-export default function TailorCard({ tailor }: TailorCardProps) {
+export default function TailorCard({
+  tailor,
+  updateFunction,
+}: TailorCardProps) {
   const { db } = useDatabase();
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
-  const [tailors, setTailors] = useState<(typeof tailorsTable.$inferSelect)[]>(
-    [],
-  );
+
+  async function deleteTailor() {
+    await db.delete(tailorsTable).where(eq(tailorsTable.id, tailor.id));
+    setIsModalVisible(false);
+    updateFunction();
+  }
 
   return (
     <>
@@ -31,7 +39,11 @@ export default function TailorCard({ tailor }: TailorCardProps) {
       <ModalWrapper
         visible={isModalVisible}
         closeModal={() => setIsModalVisible(false)}
-      ></ModalWrapper>
+      >
+        <TouchableOpacity onPress={deleteTailor}>
+          <Text>Delete</Text>
+        </TouchableOpacity>
+      </ModalWrapper>
     </>
   );
 }
