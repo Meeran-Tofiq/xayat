@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import { tailorsTable } from "@/db/schema";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useDatabase } from "@/src/context/DatabaseProvider";
 import ModalWrapper from "@/src/components/ModalWrapper";
 import { eq } from "drizzle-orm";
+import TailorForm, { TailorFormInputs } from "./TailorForm";
 
 interface TailorCardProps {
   tailor: typeof tailorsTable.$inferSelect;
@@ -17,10 +18,43 @@ export default function TailorCard({
   const { db } = useDatabase();
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
 
-  async function deleteTailor() {
-    await db.delete(tailorsTable).where(eq(tailorsTable.id, tailor.id));
+  async function updateTailor(data: TailorFormInputs) {
+    await db
+      .update(tailorsTable)
+      .set(data)
+      .where(eq(tailorsTable.id, tailor.id));
     setIsModalVisible(false);
     updateFunction();
+  }
+
+  async function deleteTailor() {
+    setIsModalVisible(false);
+    Alert.alert(
+      "Confirm Deletion",
+      "Are you sure you want to delete this tailor?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await db
+                .delete(tailorsTable)
+                .where(eq(tailorsTable.id, tailor.id));
+              setIsModalVisible(false);
+              updateFunction();
+            } catch (error) {
+              console.error("Failed to delete tailor:", error);
+            }
+          },
+        },
+      ],
+      { cancelable: true },
+    );
   }
 
   return (
@@ -40,8 +74,12 @@ export default function TailorCard({
         visible={isModalVisible}
         closeModal={() => setIsModalVisible(false)}
       >
-        <TouchableOpacity onPress={deleteTailor}>
-          <Text>Delete</Text>
+        <TailorForm
+          onSubmit={updateTailor}
+          initialValues={tailor as TailorFormInputs}
+        />
+        <TouchableOpacity onPress={deleteTailor} style={styles.deleteButton}>
+          <Text style={styles.deleteButtonText}>Delete</Text>
         </TouchableOpacity>
       </ModalWrapper>
     </>
@@ -62,5 +100,16 @@ const styles = StyleSheet.create({
   },
   text: {
     fontSize: 20,
+  },
+  deleteButton: {
+    marginTop: 16,
+    padding: 10,
+    backgroundColor: "red",
+    borderRadius: 5,
+    alignItems: "center",
+  },
+  deleteButtonText: {
+    color: "white",
+    fontWeight: "bold",
   },
 });
