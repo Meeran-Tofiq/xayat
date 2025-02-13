@@ -62,7 +62,7 @@ export default function TailorCard({
       <TouchableOpacity onPress={() => setIsModalVisible(true)}>
         <View style={styles.cardContainer}>
           <View style={styles.mainInfoContainer}>
-            <Text style={styles.text}>{tailor.name}</Text>
+            <Text style={styles.nameText}>{tailor.name}</Text>
             <Text style={styles.text}>{tailor.phone}</Text>
           </View>
           {tailor.notes ? (
@@ -97,9 +97,15 @@ const styles = StyleSheet.create({
   mainInfoContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
+    justifyContent: "space-between",
+    width: "100%",
+  },
+  nameText: {
+    fontSize: 20,
   },
   text: {
     fontSize: 20,
+    color: "grey",
   },
   deleteButton: {
     marginTop: 16,
