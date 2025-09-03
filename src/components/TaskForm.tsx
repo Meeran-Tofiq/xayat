@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { useForm, Controller, SubmitHandler } from "react-hook-form";
-import DateTimePicker from "@react-native-community/datetimepicker";
 import {
   TouchableOpacity,
   StyleSheet,
@@ -33,8 +32,6 @@ export default function TaskForm({ initialValues, onSubmit }: TaskFormProps) {
   const [tailors, setTailors] = useState<(typeof tailorsTable.$inferSelect)[]>(
     [],
   );
-  const [showReceivedPicker, setShowReceivedPicker] = useState(false);
-  const [showDuePicker, setShowDuePicker] = useState(false);
 
   const {
     control,
