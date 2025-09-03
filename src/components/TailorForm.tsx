@@ -1,7 +1,12 @@
 import React from "react";
 import { useForm, Controller, SubmitHandler } from "react-hook-form";
-import { TouchableOpacity } from "react-native";
-import { Button, StyleSheet, Text, TextInput, View } from "react-native";
+import {
+  TouchableOpacity,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 
 export interface TailorFormInputs {
   name: string;
@@ -25,8 +30,8 @@ export default function TailorForm({
   } = useForm<TailorFormInputs>({
     defaultValues: initialValues || {
       name: "",
-      notes: "",
       phone: "",
+      notes: "",
     },
   });
 
@@ -39,7 +44,11 @@ export default function TailorForm({
   };
 
   return (
-    <View>
+    <View style={styles.container}>
+      {/* name */}
+      <Text style={styles.label}>
+        Name of tailor <Text style={styles.required}>*</Text>
+      </Text>
       <Controller
         control={control}
         name="name"
@@ -47,7 +56,7 @@ export default function TailorForm({
         render={({ field: { onChange, onBlur, value } }) => (
           <TextInput
             style={styles.textInput}
-            placeholder="Name of the tailor"
+            placeholder="Enter tailor name"
             onBlur={onBlur}
             onChangeText={onChange}
             value={value}
@@ -56,13 +65,16 @@ export default function TailorForm({
       />
       {errors.name && <Text style={styles.error}>{errors.name.message}</Text>}
 
+      {/* phone (optional) */}
+      <Text style={styles.label}>Phone number (optional)</Text>
       <Controller
         control={control}
         name="phone"
         render={({ field: { onChange, onBlur, value } }) => (
           <TextInput
             style={styles.textInput}
-            placeholder="Phone number of the tailor"
+            placeholder="Enter phone number"
+            keyboardType="numeric"
             onBlur={onBlur}
             onChangeText={onChange}
             value={value}
@@ -70,13 +82,15 @@ export default function TailorForm({
         )}
       />
 
+      {/* notes (optional) */}
+      <Text style={styles.label}>Notes (optional)</Text>
       <Controller
         control={control}
         name="notes"
         render={({ field: { onChange, onBlur, value } }) => (
           <TextInput
             style={styles.textInput}
-            placeholder="Notes"
+            placeholder="Any extra details..."
             onBlur={onBlur}
             onChangeText={onChange}
             value={value}
@@ -84,6 +98,7 @@ export default function TailorForm({
         )}
       />
 
+      {/* submit */}
       <TouchableOpacity
         onPress={handleSubmit(handleFormSubmit)}
         style={styles.submitContainer}
@@ -95,9 +110,9 @@ export default function TailorForm({
 }
 
 const styles = StyleSheet.create({
-  container: {
-    padding: 16,
-  },
+  container: { padding: 16 },
+  label: { fontWeight: "600", marginBottom: 4 },
+  required: { color: "red" },
   textInput: {
     borderColor: "#ccc",
     borderWidth: 1,
@@ -105,13 +120,16 @@ const styles = StyleSheet.create({
     padding: 8,
     marginBottom: 8,
   },
-  error: {
-    color: "red",
-    marginBottom: 8,
-  },
+  error: { color: "red", marginBottom: 8 },
   submitText: {
     textAlign: "center",
-    color: "blue",
+    color: "white",
+    fontWeight: "bold",
   },
-  submitContainer: {},
+  submitContainer: {
+    padding: 12,
+    backgroundColor: "#4552CB",
+    borderRadius: 6,
+    marginTop: 8,
+  },
 });
