@@ -1,3 +1,4 @@
+// src/screens/TasksScreen.tsx
 import React, { useEffect, useState } from "react";
 import {
   ScrollView,
@@ -5,8 +6,9 @@ import {
   Text,
   TouchableOpacity,
   RefreshControl,
+  View,
 } from "react-native";
-import { eq } from "drizzle-orm"; // make sure to import eq
+import { eq } from "drizzle-orm";
 import { useDatabase } from "@/src/context/DatabaseProvider";
 import { tasksTable, tailorsTable } from "@/db/schema";
 import TaskForm, { TaskFormInputs } from "@/src/components/TaskForm";
@@ -17,9 +19,7 @@ export default function TasksScreen() {
   const { db } = useDatabase();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [tasks, setTasks] = useState<
-    (typeof tasksTable.$inferSelect & {
-      tailorName: string;
-    })[]
+    (typeof tasksTable.$inferSelect & { tailorName: string | null })[]
   >([]);
   const [hasTailors, setHasTailors] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -31,9 +31,7 @@ export default function TasksScreen() {
   }
 
   async function updateListOfTasks() {
-    const results: (typeof tasksTable.$inferSelect & {
-      tailorName: string;
-    })[] = (await db
+    const results = (await db
       .select({
         id: tasksTable.id,
         design: tasksTable.design,
@@ -42,18 +40,15 @@ export default function TasksScreen() {
         orderReceived: tasksTable.orderReceived,
         orderDueDate: tasksTable.orderDueDate,
         tailorId: tasksTable.tailorId,
-        // wrap this in sql<string | null> so type is correct for left join
         tailorName: tailorsTable.name,
       })
       .from(tasksTable)
-      .leftJoin(
-        tailorsTable,
-        eq(tasksTable.tailorId, tailorsTable.id),
-      )) as (typeof tasksTable.$inferSelect & {
-      tailorName: string;
-    })[];
+      .leftJoin(tailorsTable, eq(tasksTable.tailorId, tailorsTable.id))) as (
+      | typeof tasksTable.$inferSelect
+      | { tailorName: string | null }
+    )[];
 
-    setTasks(results);
+    setTasks(results as any);
   }
 
   async function checkTailors() {
@@ -79,23 +74,30 @@ export default function TasksScreen() {
         <RefreshControl refreshing={refreshing} onRefresh={refreshAll} />
       }
     >
-      {hasTailors ? (
-        <TouchableOpacity
-          style={styles.addTaskButton}
-          onPress={() => setIsModalVisible(true)}
-        >
-          <Text style={styles.addTaskButtonText}>Add Task</Text>
-        </TouchableOpacity>
-      ) : (
-        <Text style={styles.warningText}>
-          ⚠️ You cannot add a task until you have added at least one tailor.
-        </Text>
-      )}
+      <View>
+        {hasTailors ? (
+          <TouchableOpacity
+            style={styles.addTaskButton}
+            onPress={() => setIsModalVisible(true)}
+          >
+            <Text style={styles.addTaskButtonText}>Add Task</Text>
+          </TouchableOpacity>
+        ) : (
+          <Text style={styles.warningText}>
+            ⚠️ You cannot add a task until you have added at least one tailor.
+          </Text>
+        )}
+      </View>
 
+      {/* list */}
       {tasks.map((task) => (
-        <TaskCard key={task.id} task={task} />
+        <View key={task.id} style={{ marginBottom: 8 }}>
+          {/* TaskCard is responsible for its own edit/delete modal; pass a refresh function */}
+          <TaskCard task={task} updateFunction={updateListOfTasks} />
+        </View>
       ))}
 
+      {/* Add modal (only for creating new tasks) */}
       {hasTailors && (
         <ModalWrapper
           visible={isModalVisible}

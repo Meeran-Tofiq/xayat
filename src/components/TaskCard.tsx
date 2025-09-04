@@ -1,77 +1,47 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { useDatabase } from "@/src/context/DatabaseProvider";
 import { tasksTable } from "@/db/schema";
+import { eq } from "drizzle-orm";
+import EditableCard from "@/src/components/EditableCard";
+import TaskCardView from "@/src/components/TaskCardView";
+import TaskForm from "@/src/components/TaskForm";
 
-export interface TaskCardProps {
-  task: typeof tasksTable.$inferSelect & { tailorName: string };
-}
+type Task = typeof tasksTable.$inferSelect & { tailorName: string };
 
-function formatDate(dateString: string | null) {
-  if (!dateString) return "";
-  const date = new Date(dateString);
-  if (isNaN(date.getTime())) return dateString; // fallback
-  return `${date.getDate().toString().padStart(2, "0")}/${(date.getMonth() + 1).toString().padStart(2, "0")}/${date.getFullYear()}`;
-}
+export default function TaskCard({
+  task,
+  updateFunction,
+}: {
+  task: Task;
+  updateFunction: () => Promise<void>;
+}) {
+  const { db } = useDatabase();
 
-export default function TaskCard({ task }: TaskCardProps) {
+  // called when the form inside the modal submits (edit)
+  async function onUpdate(data: Partial<typeof tasksTable.$inferInsert>) {
+    // keep only provided fields (drizzle will ignore undefined usually, but safe)
+    const patch: Partial<typeof tasksTable.$inferInsert> = {
+      ...(data as Partial<typeof tasksTable.$inferInsert>),
+    };
+    await db
+      .update(tasksTable)
+      .set(patch as any)
+      .where(eq(tasksTable.id, task.id));
+  }
+
+  // called when user confirms delete
+  async function onDelete() {
+    await db.delete(tasksTable).where(eq(tasksTable.id, task.id));
+  }
+
   return (
-    <View style={styles.card}>
-      {/* Header row: Tailor | Design */}
-      <View style={styles.headerRow}>
-        <Text style={styles.headerLeft}>{task.tailorName}</Text>
-        <Text style={styles.headerRight}>{task.design}</Text>
-      </View>
-
-      {/* Details row: Dates */}
-      <View style={styles.row}>
-        <Text style={styles.detail}>
-          Received: {formatDate(task.orderReceived)}
-        </Text>
-        <Text style={styles.detail}>Due: {formatDate(task.orderDueDate)}</Text>
-      </View>
-
-      {/* Meters and paid */}
-      <View style={styles.row}>
-        <Text style={styles.detail}>Length: {task.meters}m</Text>
-        <Text style={styles.detail}>Paid: {task.payed ? "Yes" : "No"}</Text>
-      </View>
-    </View>
+    <EditableCard<Task>
+      item={task}
+      renderContent={(t) => <TaskCardView task={t} />}
+      FormComponent={TaskForm as any}
+      onUpdate={onUpdate}
+      onDelete={onDelete}
+      refreshList={updateFunction}
+    />
   );
 }
-
-const styles = StyleSheet.create({
-  card: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 10,
-    backgroundColor: "#fff",
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    elevation: 2,
-  },
-  headerRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 6,
-  },
-  headerLeft: {
-    fontWeight: "bold",
-    fontSize: 16,
-  },
-  headerRight: {
-    fontWeight: "bold",
-    fontSize: 16,
-  },
-  row: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 4,
-  },
-  detail: {
-    fontSize: 14,
-    color: "#333",
-  },
-});

@@ -13,20 +13,11 @@ import {
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker";
 import { useDatabase } from "@/src/context/DatabaseProvider";
-import { tailorsTable } from "@/db/schema";
-
-export interface TaskFormInputs {
-  meters: number;
-  design: string;
-  payed: boolean;
-  orderReceived: string;
-  orderDueDate: string;
-  tailorId: number;
-}
+import { tailorsTable, tasksTable } from "@/db/schema";
 
 interface TaskFormProps {
-  initialValues?: TaskFormInputs;
-  onSubmit: (data: TaskFormInputs) => Promise<void>;
+  initialValues?: typeof tasksTable.$inferInsert;
+  onSubmit: (data: typeof tasksTable.$inferInsert) => Promise<void>;
 }
 
 export default function TaskForm({ initialValues, onSubmit }: TaskFormProps) {
@@ -39,7 +30,7 @@ export default function TaskForm({ initialValues, onSubmit }: TaskFormProps) {
     control,
     handleSubmit,
     formState: { errors },
-  } = useForm<TaskFormInputs>({
+  } = useForm<typeof tasksTable.$inferInsert>({
     defaultValues: initialValues || {
       meters: undefined,
       design: "",
@@ -58,7 +49,9 @@ export default function TaskForm({ initialValues, onSubmit }: TaskFormProps) {
     fetchTailors();
   }, [db]);
 
-  const handleFormSubmit: SubmitHandler<TaskFormInputs> = async (data) => {
+  const handleFormSubmit: SubmitHandler<
+    typeof tasksTable.$inferInsert
+  > = async (data) => {
     try {
       await onSubmit(data);
     } catch (error) {
