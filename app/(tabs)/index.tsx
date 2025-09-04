@@ -31,7 +31,9 @@ export default function TasksScreen() {
   }
 
   async function updateListOfTasks() {
-    const results = await db
+    const results: (typeof tasksTable.$inferSelect & {
+      tailorName: string;
+    })[] = (await db
       .select({
         id: tasksTable.id,
         design: tasksTable.design,
@@ -44,7 +46,12 @@ export default function TasksScreen() {
         tailorName: tailorsTable.name,
       })
       .from(tasksTable)
-      .leftJoin(tailorsTable, eq(tasksTable.tailorId, tailorsTable.id));
+      .leftJoin(
+        tailorsTable,
+        eq(tasksTable.tailorId, tailorsTable.id),
+      )) as (typeof tasksTable.$inferSelect & {
+      tailorName: string;
+    })[];
 
     setTasks(results);
   }

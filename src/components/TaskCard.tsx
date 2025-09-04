@@ -1,12 +1,13 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
-import { TaskFormInputs } from "./TaskForm";
+import { tasksTable } from "@/db/schema";
 
 export interface TaskCardProps {
-  task: TaskFormInputs & { tailorName: string };
+  task: typeof tasksTable.$inferSelect & { tailorName: string };
 }
 
-function formatDate(dateString: string) {
+function formatDate(dateString: string | null) {
+  if (!dateString) return "";
   const date = new Date(dateString);
   if (isNaN(date.getTime())) return dateString; // fallback
   return `${date.getDate().toString().padStart(2, "0")}/${(date.getMonth() + 1).toString().padStart(2, "0")}/${date.getFullYear()}`;
