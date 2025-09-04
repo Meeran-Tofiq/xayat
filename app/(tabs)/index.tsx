@@ -18,7 +18,7 @@ export default function TasksScreen() {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [tasks, setTasks] = useState<
     (typeof tasksTable.$inferSelect & {
-      tailorName: string | null;
+      tailorName: string;
     })[]
   >([]);
   const [hasTailors, setHasTailors] = useState(false);
@@ -86,7 +86,7 @@ export default function TasksScreen() {
       )}
 
       {tasks.map((task) => (
-        <TaskCard key={task.id} {...task} />
+        <TaskCard key={task.id} task={task} />
       ))}
 
       {hasTailors && (

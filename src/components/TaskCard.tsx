@@ -1,13 +1,9 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
+import { TaskFormInputs } from "./TaskForm";
 
 export interface TaskCardProps {
-  design: string;
-  meters: number;
-  payed: boolean;
-  tailorName: string;
-  orderReceived: string;
-  orderDueDate: string;
+  task: TaskFormInputs & { tailorName: string };
 }
 
 function formatDate(dateString: string) {
@@ -16,32 +12,27 @@ function formatDate(dateString: string) {
   return `${date.getDate().toString().padStart(2, "0")}/${(date.getMonth() + 1).toString().padStart(2, "0")}/${date.getFullYear()}`;
 }
 
-export default function TaskCard({
-  design,
-  meters,
-  payed,
-  tailorName,
-  orderReceived,
-  orderDueDate,
-}: TaskCardProps) {
+export default function TaskCard({ task }: TaskCardProps) {
   return (
     <View style={styles.card}>
       {/* Header row: Tailor | Design */}
       <View style={styles.headerRow}>
-        <Text style={styles.headerLeft}>{tailorName}</Text>
-        <Text style={styles.headerRight}>{design}</Text>
+        <Text style={styles.headerLeft}>{task.tailorName}</Text>
+        <Text style={styles.headerRight}>{task.design}</Text>
       </View>
 
       {/* Details row: Dates */}
       <View style={styles.row}>
-        <Text style={styles.detail}>Received: {formatDate(orderReceived)}</Text>
-        <Text style={styles.detail}>Due: {formatDate(orderDueDate)}</Text>
+        <Text style={styles.detail}>
+          Received: {formatDate(task.orderReceived)}
+        </Text>
+        <Text style={styles.detail}>Due: {formatDate(task.orderDueDate)}</Text>
       </View>
 
       {/* Meters and paid */}
       <View style={styles.row}>
-        <Text style={styles.detail}>Length: {meters}m</Text>
-        <Text style={styles.detail}>Paid: {payed ? "Yes" : "No"}</Text>
+        <Text style={styles.detail}>Length: {task.meters}m</Text>
+        <Text style={styles.detail}>Paid: {task.payed ? "Yes" : "No"}</Text>
       </View>
     </View>
   );
