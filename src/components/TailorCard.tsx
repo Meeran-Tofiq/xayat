@@ -1,121 +1,44 @@
-import React, { useState } from "react";
+import React from "react";
 import { tailorsTable } from "@/db/schema";
-import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useDatabase } from "@/src/context/DatabaseProvider";
-import ModalWrapper from "@/src/components/ModalWrapper";
 import { eq } from "drizzle-orm";
+import EditableCard from "@/src/components/EditableCard";
+import TailorCardView from "@/src/components/TailorCardView";
 import TailorForm, { TailorFormInputs } from "./TailorForm";
 
-interface TailorCardProps {
-  tailor: typeof tailorsTable.$inferSelect;
-  updateFunction: () => void;
-}
+type Tailor = typeof tailorsTable.$inferSelect;
 
 export default function TailorCard({
   tailor,
   updateFunction,
-}: TailorCardProps) {
+}: {
+  tailor: Tailor;
+  updateFunction: () => void;
+}) {
   const { db } = useDatabase();
-  const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
 
-  async function updateTailor(data: TailorFormInputs) {
+  // onUpdate receives partial form values. We know which row to update by tailor.id.
+  async function onUpdate(data: Partial<TailorFormInputs>) {
+    // remove undefined fields for safety or cast
+    const patch = { ...data } as Partial<TailorFormInputs>;
     await db
       .update(tailorsTable)
-      .set(data)
+      .set(patch)
       .where(eq(tailorsTable.id, tailor.id));
-    setIsModalVisible(false);
-    updateFunction();
   }
 
-  async function deleteTailor() {
-    setIsModalVisible(false);
-    Alert.alert(
-      "Confirm Deletion",
-      "Are you sure you want to delete this tailor?",
-      [
-        {
-          text: "Cancel",
-          style: "cancel",
-        },
-        {
-          text: "Delete",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await db
-                .delete(tailorsTable)
-                .where(eq(tailorsTable.id, tailor.id));
-              setIsModalVisible(false);
-              updateFunction();
-            } catch (error) {
-              console.error("Failed to delete tailor:", error);
-            }
-          },
-        },
-      ],
-      { cancelable: true },
-    );
+  async function onDelete() {
+    await db.delete(tailorsTable).where(eq(tailorsTable.id, tailor.id));
   }
 
   return (
-    <>
-      <TouchableOpacity onPress={() => setIsModalVisible(true)}>
-        <View style={styles.cardContainer}>
-          <View style={styles.mainInfoContainer}>
-            <Text style={styles.nameText}>{tailor.name}</Text>
-            <Text style={styles.text}>{tailor.phone}</Text>
-          </View>
-          {tailor.notes ? (
-            <Text style={styles.text}>{tailor.notes}</Text>
-          ) : null}
-        </View>
-      </TouchableOpacity>
-      <ModalWrapper
-        visible={isModalVisible}
-        closeModal={() => setIsModalVisible(false)}
-      >
-        <TailorForm
-          onSubmit={updateTailor}
-          initialValues={tailor as TailorFormInputs}
-        />
-        <TouchableOpacity onPress={deleteTailor} style={styles.deleteButton}>
-          <Text style={styles.deleteButtonText}>Delete</Text>
-        </TouchableOpacity>
-      </ModalWrapper>
-    </>
+    <EditableCard<Tailor>
+      item={tailor}
+      renderContent={(t) => <TailorCardView tailor={t} />}
+      FormComponent={TailorForm as any}
+      onUpdate={onUpdate}
+      onDelete={onDelete}
+      refreshList={async () => updateFunction()}
+    />
   );
 }
-
-const styles = StyleSheet.create({
-  cardContainer: {
-    borderRadius: 10,
-    padding: 10,
-    backgroundColor: "white",
-    elevation: 3,
-    margin: 4,
-  },
-  mainInfoContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-    width: "100%",
-  },
-  nameText: {
-    fontSize: 20,
-  },
-  text: {
-    fontSize: 20,
-    color: "grey",
-  },
-  deleteButton: {
-    marginTop: 16,
-    padding: 10,
-    backgroundColor: "red",
-    borderRadius: 5,
-    alignItems: "center",
-  },
-  deleteButtonText: {
-    color: "white",
-    fontWeight: "bold",
-  },
-});
