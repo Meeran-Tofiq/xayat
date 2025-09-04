@@ -8,7 +8,9 @@ import {
   View,
   ScrollView,
   Switch,
+  Platform,
 } from "react-native";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker";
 import { useDatabase } from "@/src/context/DatabaseProvider";
 import { tailorsTable } from "@/db/schema";
@@ -42,8 +44,8 @@ export default function TaskForm({ initialValues, onSubmit }: TaskFormProps) {
       meters: undefined,
       design: "",
       payed: false,
-      orderReceived: "",
-      orderDueDate: "",
+      orderReceived: new Date().toISOString().split("T")[0], // default today
+      orderDueDate: new Date().toISOString().split("T")[0], // default today
       tailorId: undefined,
     },
   });
@@ -122,7 +124,6 @@ export default function TaskForm({ initialValues, onSubmit }: TaskFormProps) {
           </View>
         )}
       />
-      {errors.payed && <Text style={styles.error}>{errors.payed.message}</Text>}
 
       {/* orderReceived */}
       <Text style={styles.label}>
@@ -132,15 +133,32 @@ export default function TaskForm({ initialValues, onSubmit }: TaskFormProps) {
         control={control}
         name="orderReceived"
         rules={{ required: "Order received date is required." }}
-        render={({ field: { onChange, onBlur, value } }) => (
-          <TextInput
-            style={styles.textInput}
-            placeholder="YYYY-MM-DD"
-            onBlur={onBlur}
-            onChangeText={onChange}
-            value={value}
-          />
-        )}
+        render={({ field: { onChange, value } }) => {
+          const [showPicker, setShowPicker] = useState(false);
+          return (
+            <View>
+              <TouchableOpacity
+                style={styles.dateButton}
+                onPress={() => setShowPicker(true)}
+              >
+                <Text>{value || "Select date"}</Text>
+              </TouchableOpacity>
+              {showPicker && (
+                <DateTimePicker
+                  value={value ? new Date(value) : new Date()}
+                  mode="date"
+                  display={Platform.OS === "ios" ? "spinner" : "default"}
+                  onChange={(_, selectedDate) => {
+                    setShowPicker(false);
+                    if (selectedDate) {
+                      onChange(selectedDate.toISOString().split("T")[0]);
+                    }
+                  }}
+                />
+              )}
+            </View>
+          );
+        }}
       />
       {errors.orderReceived && (
         <Text style={styles.error}>{errors.orderReceived.message}</Text>
@@ -154,15 +172,32 @@ export default function TaskForm({ initialValues, onSubmit }: TaskFormProps) {
         control={control}
         name="orderDueDate"
         rules={{ required: "Order due date is required." }}
-        render={({ field: { onChange, onBlur, value } }) => (
-          <TextInput
-            style={styles.textInput}
-            placeholder="YYYY-MM-DD"
-            onBlur={onBlur}
-            onChangeText={onChange}
-            value={value}
-          />
-        )}
+        render={({ field: { onChange, value } }) => {
+          const [showPicker, setShowPicker] = useState(false);
+          return (
+            <View>
+              <TouchableOpacity
+                style={styles.dateButton}
+                onPress={() => setShowPicker(true)}
+              >
+                <Text>{value || "Select date"}</Text>
+              </TouchableOpacity>
+              {showPicker && (
+                <DateTimePicker
+                  value={value ? new Date(value) : new Date()}
+                  mode="date"
+                  display={Platform.OS === "ios" ? "spinner" : "default"}
+                  onChange={(_, selectedDate) => {
+                    setShowPicker(false);
+                    if (selectedDate) {
+                      onChange(selectedDate.toISOString().split("T")[0]);
+                    }
+                  }}
+                />
+              )}
+            </View>
+          );
+        }}
       />
       {errors.orderDueDate && (
         <Text style={styles.error}>{errors.orderDueDate.message}</Text>
@@ -225,6 +260,14 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 4,
     marginBottom: 8,
+  },
+  dateButton: {
+    borderColor: "#ccc",
+    borderWidth: 1,
+    borderRadius: 4,
+    padding: 10,
+    marginBottom: 8,
+    backgroundColor: "#f9f9f9",
   },
   error: { color: "red", marginBottom: 8 },
   submitText: {
