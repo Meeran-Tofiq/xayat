@@ -182,7 +182,7 @@ export default function TaskForm({ initialValues, onSubmit }: TaskFormProps) {
               selectedValue={value}
               onValueChange={(itemValue) => onChange(itemValue)}
             >
-              <Picker.Item label="Select a tailor..." value={0} />
+              <Picker.Item label="Select a tailor..." value={undefined} />
               {tailors.map((tailor) => (
                 <Picker.Item
                   key={tailor.id}
