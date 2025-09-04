@@ -15,6 +15,13 @@
       "when": 1736961477060,
       "tag": "0001_perfect_gateway",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1757006121252,
+      "tag": "0002_complete_psynapse",
+      "breakpoints": true
     }
   ]
 }

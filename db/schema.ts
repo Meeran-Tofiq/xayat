@@ -15,7 +15,7 @@ export const tasksTable = sqliteTable("tasks_table", {
   payed: int({ mode: "boolean" }).notNull(),
   orderReceived: text().default(sql`(CURRENT_DATE)`),
   orderDueDate: text().default(sql`(CURRENT_DATE)`),
-  tailorId: int(),
+  tailorId: int().notNull(),
 });
 
 export const tailorsRelations = relations(tailorsTable, ({ many }) => ({

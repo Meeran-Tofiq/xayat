@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import {
-  Button,
   ScrollView,
   StyleSheet,
   Text,
@@ -37,6 +36,13 @@ export default function TailorsScreen() {
 
   return (
     <View style={styles.container}>
+      <TouchableOpacity
+        style={styles.addTailorButton}
+        onPress={() => setIsModalVisible(true)}
+      >
+        <Text style={styles.addTailorButtonText}>Add Tailor</Text>
+      </TouchableOpacity>
+
       <ScrollView>
         {tailors.map((tailor) => (
           <View key={tailor.id} style={{ marginBottom: 5 }}>
@@ -47,12 +53,6 @@ export default function TailorsScreen() {
             />
           </View>
         ))}
-        <TouchableOpacity
-          style={styles.addTailorButton}
-          onPress={() => setIsModalVisible(true)}
-        >
-          <Text style={styles.addTailorButtonText}>Add Tailor</Text>
-        </TouchableOpacity>
       </ScrollView>
 
       <ModalWrapper
@@ -73,9 +73,12 @@ const styles = StyleSheet.create({
     backgroundColor: "#4552CB",
     padding: 10,
     borderRadius: 10,
+    marginTop: 10,
+    marginBottom: 10,
   },
   addTailorButtonText: {
     textAlign: "center",
     color: "white",
+    fontWeight: "bold",
   },
 });
