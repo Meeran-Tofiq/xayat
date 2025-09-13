@@ -5,7 +5,7 @@ import { tasksTable } from "@/db/schema";
 type Task = typeof tasksTable.$inferSelect & { tailorName: string };
 
 function formatDate(dateString: string | null) {
-  if (!dateString) return "";
+  if (!dateString) return "-";
   const date = new Date(dateString);
   if (isNaN(date.getTime())) return dateString; // fallback
   return `${date.getDate().toString().padStart(2, "0")}/${(date.getMonth() + 1)
@@ -14,6 +14,18 @@ function formatDate(dateString: string | null) {
 }
 
 export default function TaskCardView({ task }: { task: Task }) {
+  const rows: { left: string; right: string }[] = [
+    {
+      left: `Received: ${formatDate(task.orderReceived)}`,
+      right: `Length: ${task.meters}m`,
+    },
+    {
+      left: `Paid: ${task.payed ? "Yes" : "No"}`,
+      right: `Completed: ${task.completed ? "Yes" : "No"}`,
+    },
+    { left: `Color: ${task.color}`, right: "" },
+  ];
+
   return (
     <View style={styles.card}>
       {/* Header row: Tailor | Design */}
@@ -22,19 +34,13 @@ export default function TaskCardView({ task }: { task: Task }) {
         <Text style={styles.headerRight}>{task.design}</Text>
       </View>
 
-      {/* Details row: Dates */}
-      <View style={styles.row}>
-        <Text style={styles.detail}>
-          Received: {formatDate(task.orderReceived)}
-        </Text>
-        <Text style={styles.detail}>Due: {formatDate(task.orderDueDate)}</Text>
-      </View>
-
-      {/* Meters and paid */}
-      <View style={styles.row}>
-        <Text style={styles.detail}>Length: {task.meters}m</Text>
-        <Text style={styles.detail}>Paid: {task.payed ? "Yes" : "No"}</Text>
-      </View>
+      {/* Detail rows */}
+      {rows.map((row, i) => (
+        <View key={i} style={styles.row}>
+          <Text style={styles.detail}>{row.left}</Text>
+          {row.right ? <Text style={styles.detail}>{row.right}</Text> : null}
+        </View>
+      ))}
     </View>
   );
 }

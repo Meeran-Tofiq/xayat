@@ -13,8 +13,9 @@ export const tasksTable = sqliteTable("tasks_table", {
   meters: int().notNull(),
   design: text().notNull(),
   payed: int({ mode: "boolean" }).notNull(),
+  completed: int({ mode: "boolean" }).notNull(),
   orderReceived: text().default(sql`(CURRENT_DATE)`),
-  orderDueDate: text().default(sql`(CURRENT_DATE)`),
+  color: text(),
   tailorId: int().notNull(),
 });
 

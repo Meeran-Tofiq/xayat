@@ -35,8 +35,9 @@ export default function TaskForm({ initialValues, onSubmit }: TaskFormProps) {
       meters: undefined,
       design: "",
       payed: false,
+      completed: false,
       orderReceived: new Date().toISOString().split("T")[0], // default today
-      orderDueDate: new Date().toISOString().split("T")[0], // default today
+      color: "",
       tailorId: undefined,
     },
   });
@@ -106,6 +107,22 @@ export default function TaskForm({ initialValues, onSubmit }: TaskFormProps) {
         <Text style={styles.error}>{errors.design.message}</Text>
       )}
 
+      {/* color */}
+      <Text style={styles.label}>Color</Text>
+      <Controller
+        control={control}
+        name="color"
+        render={({ field: { onChange, onBlur, value } }) => (
+          <TextInput
+            style={styles.textInput}
+            placeholder="Enter color"
+            onBlur={onBlur}
+            onChangeText={onChange}
+            value={value || ""}
+          />
+        )}
+      />
+
       {/* payed */}
       <Controller
         control={control}
@@ -118,14 +135,23 @@ export default function TaskForm({ initialValues, onSubmit }: TaskFormProps) {
         )}
       />
 
+      {/* completed */}
+      <Controller
+        control={control}
+        name="completed"
+        render={({ field: { onChange, value } }) => (
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <Text style={styles.label}>Completed?</Text>
+            <Switch value={value} onValueChange={onChange} />
+          </View>
+        )}
+      />
+
       {/* orderReceived */}
-      <Text style={styles.label}>
-        Order received date <Text style={styles.required}>*</Text>
-      </Text>
+      <Text style={styles.label}>Order received date</Text>
       <Controller
         control={control}
         name="orderReceived"
-        rules={{ required: "Order received date is required." }}
         render={({ field: { onChange, value } }) => {
           const [showPicker, setShowPicker] = useState(false);
           return (
@@ -153,48 +179,6 @@ export default function TaskForm({ initialValues, onSubmit }: TaskFormProps) {
           );
         }}
       />
-      {errors.orderReceived && (
-        <Text style={styles.error}>{errors.orderReceived.message}</Text>
-      )}
-
-      {/* orderDueDate */}
-      <Text style={styles.label}>
-        Order due date <Text style={styles.required}>*</Text>
-      </Text>
-      <Controller
-        control={control}
-        name="orderDueDate"
-        rules={{ required: "Order due date is required." }}
-        render={({ field: { onChange, value } }) => {
-          const [showPicker, setShowPicker] = useState(false);
-          return (
-            <View>
-              <TouchableOpacity
-                style={styles.dateButton}
-                onPress={() => setShowPicker(true)}
-              >
-                <Text>{value || "Select date"}</Text>
-              </TouchableOpacity>
-              {showPicker && (
-                <DateTimePicker
-                  value={value ? new Date(value) : new Date()}
-                  mode="date"
-                  display={Platform.OS === "ios" ? "spinner" : "default"}
-                  onChange={(_, selectedDate) => {
-                    setShowPicker(false);
-                    if (selectedDate) {
-                      onChange(selectedDate.toISOString().split("T")[0]);
-                    }
-                  }}
-                />
-              )}
-            </View>
-          );
-        }}
-      />
-      {errors.orderDueDate && (
-        <Text style={styles.error}>{errors.orderDueDate.message}</Text>
-      )}
 
       {/* tailorId */}
       <Text style={styles.label}>

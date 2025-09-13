@@ -11,7 +11,7 @@ import {
 import { eq } from "drizzle-orm";
 import { useDatabase } from "@/src/context/DatabaseProvider";
 import { tasksTable, tailorsTable } from "@/db/schema";
-import TaskForm, { TaskFormInputs } from "@/src/components/TaskForm";
+import TaskForm from "@/src/components/TaskForm";
 import ModalWrapper from "@/src/components/ModalWrapper";
 import TaskCard from "@/src/components/TaskCard";
 
@@ -19,12 +19,12 @@ export default function TasksScreen() {
   const { db } = useDatabase();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [tasks, setTasks] = useState<
-    (typeof tasksTable.$inferSelect & { tailorName: string | null })[]
+    (typeof tasksTable.$inferSelect & { tailorName: string })[]
   >([]);
   const [hasTailors, setHasTailors] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
-  async function addTask(data: TaskFormInputs) {
+  async function addTask(data: typeof tasksTable.$inferInsert) {
     setIsModalVisible(false);
     await db.insert(tasksTable).values(data);
     await refreshAll();
@@ -37,18 +37,19 @@ export default function TasksScreen() {
         design: tasksTable.design,
         meters: tasksTable.meters,
         payed: tasksTable.payed,
+        completed: tasksTable.completed,
         orderReceived: tasksTable.orderReceived,
-        orderDueDate: tasksTable.orderDueDate,
+        color: tasksTable.color,
         tailorId: tasksTable.tailorId,
         tailorName: tailorsTable.name,
       })
       .from(tasksTable)
-      .leftJoin(tailorsTable, eq(tasksTable.tailorId, tailorsTable.id))) as (
-      | typeof tasksTable.$inferSelect
-      | { tailorName: string | null }
-    )[];
+      .leftJoin(
+        tailorsTable,
+        eq(tasksTable.tailorId, tailorsTable.id),
+      )) as (typeof tasksTable.$inferSelect & { tailorName: string })[];
 
-    setTasks(results as any);
+    setTasks(results);
   }
 
   async function checkTailors() {
