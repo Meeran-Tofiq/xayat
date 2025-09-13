@@ -1,110 +1,70 @@
-// src/screens/TasksScreen.tsx
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   ScrollView,
   StyleSheet,
   Text,
-  TouchableOpacity,
   RefreshControl,
   View,
 } from "react-native";
-import { eq } from "drizzle-orm";
-import { useDatabase } from "@/src/context/DatabaseProvider";
-import { tasksTable, tailorsTable } from "@/db/schema";
 import TaskForm from "@/src/components/TaskForm";
 import ModalWrapper from "@/src/components/ModalWrapper";
 import TaskCard from "@/src/components/TaskCard";
+import TaskFilters, { TaskFiltersState } from "@/src/components/TaskFilters";
+import { useTasks } from "@/src/hooks/useTasks";
+import { useTailors } from "@/src/hooks/useTailors";
+import TaskActions from "@/src/components/TaskActions";
 
 export default function TasksScreen() {
-  const { db } = useDatabase();
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [tasks, setTasks] = useState<
-    (typeof tasksTable.$inferSelect & { tailorName: string })[]
-  >([]);
-  const [hasTailors, setHasTailors] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
+  const [filters, setFilters] = useState<TaskFiltersState>({});
 
-  async function addTask(data: typeof tasksTable.$inferInsert) {
-    setIsModalVisible(false);
-    await db.insert(tasksTable).values(data);
-    await refreshAll();
-  }
-
-  async function updateListOfTasks() {
-    const results = (await db
-      .select({
-        id: tasksTable.id,
-        design: tasksTable.design,
-        meters: tasksTable.meters,
-        payed: tasksTable.payed,
-        completed: tasksTable.completed,
-        orderReceived: tasksTable.orderReceived,
-        color: tasksTable.color,
-        tailorId: tasksTable.tailorId,
-        tailorName: tailorsTable.name,
-      })
-      .from(tasksTable)
-      .leftJoin(
-        tailorsTable,
-        eq(tasksTable.tailorId, tailorsTable.id),
-      )) as (typeof tasksTable.$inferSelect & { tailorName: string })[];
-
-    setTasks(results);
-  }
-
-  async function checkTailors() {
-    const results = await db.select().from(tailorsTable).limit(1);
-    setHasTailors(results.length > 0);
-  }
-
-  async function refreshAll() {
-    setRefreshing(true);
-    await Promise.all([updateListOfTasks(), checkTailors()]);
-    setRefreshing(false);
-  }
-
-  useEffect(() => {
-    refreshAll();
-  }, [db]);
+  const { tasks, refresh, addTask } = useTasks(filters);
+  const { tailors } = useTailors();
 
   return (
     <ScrollView
       style={styles.container}
       contentContainerStyle={styles.scrollContent}
-      refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={refreshAll} />
-      }
+      refreshControl={<RefreshControl refreshing={false} onRefresh={refresh} />}
     >
-      <View>
-        {hasTailors ? (
-          <TouchableOpacity
-            style={styles.addTaskButton}
-            onPress={() => setIsModalVisible(true)}
-          >
-            <Text style={styles.addTaskButtonText}>Add Task</Text>
-          </TouchableOpacity>
-        ) : (
-          <Text style={styles.warningText}>
-            ⚠️ You cannot add a task until you have added at least one tailor.
-          </Text>
-        )}
-      </View>
+      <TaskActions
+        hasTailors={tailors.length > 0}
+        onAddTask={() => setIsModalVisible(true)}
+        onToggleFilters={() => setShowFilters((s) => !s)}
+      />
 
-      {/* list */}
+      {tailors.length === 0 && (
+        <Text style={styles.warningText}>
+          ⚠️ You cannot add a task until you have added at least one tailor.
+        </Text>
+      )}
+
+      {showFilters && (
+        <TaskFilters
+          filters={filters}
+          onChangeFilters={(f) => setFilters(f)}
+          onReset={() => setFilters({})}
+        />
+      )}
+
       {tasks.map((task) => (
         <View key={task.id} style={{ marginBottom: 8 }}>
-          {/* TaskCard is responsible for its own edit/delete modal; pass a refresh function */}
-          <TaskCard task={task} updateFunction={updateListOfTasks} />
+          <TaskCard task={task as any} updateFunction={refresh} />
         </View>
       ))}
 
-      {/* Add modal (only for creating new tasks) */}
-      {hasTailors && (
+      {tailors.length > 0 && (
         <ModalWrapper
           visible={isModalVisible}
           closeModal={() => setIsModalVisible(false)}
         >
-          <TaskForm onSubmit={addTask} />
+          <TaskForm
+            onSubmit={async (data) => {
+              await addTask(data);
+              setIsModalVisible(false);
+            }}
+          />
         </ModalWrapper>
       )}
     </ScrollView>
@@ -112,25 +72,8 @@ export default function TasksScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    padding: 10,
-  },
-  addTaskButton: {
-    backgroundColor: "#4552CB",
-    padding: 10,
-    borderRadius: 10,
-    marginTop: 10,
-    marginBottom: 10,
-  },
-  addTaskButtonText: {
-    textAlign: "center",
-    color: "white",
-    fontWeight: "bold",
-  },
+  container: { flex: 1 },
+  scrollContent: { flexGrow: 1, padding: 10 },
   warningText: {
     color: "red",
     fontSize: 16,
