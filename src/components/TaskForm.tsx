@@ -128,7 +128,13 @@ export default function TaskForm({ initialValues, onSubmit }: TaskFormProps) {
         control={control}
         name="payed"
         render={({ field: { onChange, value } }) => (
-          <View style={{ flexDirection: "row", alignItems: "center" }}>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
             <Text style={styles.label}>Paid?</Text>
             <Switch value={value} onValueChange={onChange} />
           </View>
@@ -140,7 +146,13 @@ export default function TaskForm({ initialValues, onSubmit }: TaskFormProps) {
         control={control}
         name="completed"
         render={({ field: { onChange, value } }) => (
-          <View style={{ flexDirection: "row", alignItems: "center" }}>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
             <Text style={styles.label}>Completed?</Text>
             <Switch value={value} onValueChange={onChange} />
           </View>

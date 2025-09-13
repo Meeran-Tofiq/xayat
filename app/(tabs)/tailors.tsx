@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   ScrollView,
   StyleSheet,
@@ -6,33 +6,14 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { useDatabase } from "@/src/context/DatabaseProvider";
-import { tailorsTable } from "@/db/schema";
 import TailorCard from "@/src/components/TailorCard";
-import TailorForm, { TailorFormInputs } from "@/src/components/TailorForm";
+import TailorForm from "@/src/components/TailorForm";
 import ModalWrapper from "@/src/components/ModalWrapper";
+import { useTailors } from "@/src/hooks/useTailors";
 
 export default function TailorsScreen() {
-  const { db } = useDatabase();
-  const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
-  const [tailors, setTailors] = useState<(typeof tailorsTable.$inferSelect)[]>(
-    [],
-  );
-
-  async function addTailor(data: TailorFormInputs) {
-    setIsModalVisible(false);
-    await db.insert(tailorsTable).values(data);
-    await updateListOfTailors();
-  }
-
-  async function updateListOfTailors() {
-    const results = await db.select().from(tailorsTable);
-    setTailors(results);
-  }
-
-  useEffect(() => {
-    updateListOfTailors();
-  }, [db]);
+  const { tailors, addTailor, refresh } = useTailors();
+  const [isModalVisible, setIsModalVisible] = useState(false);
 
   return (
     <View style={styles.container}>
@@ -46,11 +27,7 @@ export default function TailorsScreen() {
       <ScrollView>
         {tailors.map((tailor) => (
           <View key={tailor.id} style={{ marginBottom: 5 }}>
-            <TailorCard
-              tailor={tailor}
-              key={tailor.id}
-              updateFunction={updateListOfTailors}
-            />
+            <TailorCard tailor={tailor} updateFunction={refresh} />
           </View>
         ))}
       </ScrollView>
@@ -59,16 +36,19 @@ export default function TailorsScreen() {
         visible={isModalVisible}
         closeModal={() => setIsModalVisible(false)}
       >
-        <TailorForm onSubmit={addTailor} />
+        <TailorForm
+          onSubmit={async (data) => {
+            await addTailor(data);
+            setIsModalVisible(false);
+          }}
+        />
       </ModalWrapper>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    padding: 10,
-  },
+  container: { padding: 10 },
   addTailorButton: {
     backgroundColor: "#4552CB",
     padding: 10,
