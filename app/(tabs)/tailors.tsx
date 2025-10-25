@@ -9,10 +9,10 @@ import {
 import TailorCard from "@/src/components/TailorCard";
 import TailorForm from "@/src/components/TailorForm";
 import ModalWrapper from "@/src/components/ModalWrapper";
-import { useTailors } from "@/src/hooks/useTailors";
+import { useTailorsStore } from "@/src/stores/useTailorsStore";
 
 export default function TailorsScreen() {
-  const { tailors, addTailor, refresh } = useTailors();
+  const { tailors, addTailor, refresh } = useTailorsStore();
   const [isModalVisible, setIsModalVisible] = useState(false);
 
   return (

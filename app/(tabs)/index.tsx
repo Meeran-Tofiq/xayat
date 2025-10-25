@@ -11,8 +11,8 @@ import ModalWrapper from "@/src/components/ModalWrapper";
 import TaskCard from "@/src/components/TaskCard";
 import TaskFilters, { TaskFiltersState } from "@/src/components/TaskFilters";
 import { useTasks } from "@/src/hooks/useTasks";
-import { useTailors } from "@/src/hooks/useTailors";
 import TaskActions from "@/src/components/TaskActions";
+import { useTailorsStore } from "@/src/stores/useTailorsStore";
 
 export default function TasksScreen() {
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -20,7 +20,7 @@ export default function TasksScreen() {
   const [filters, setFilters] = useState<TaskFiltersState>({});
 
   const { tasks, refresh, addTask } = useTasks(filters);
-  const { tailors, refresh: tailorRefresh } = useTailors();
+  const { tailors, refresh: refreshTailors } = useTailorsStore();
 
   return (
     <ScrollView
@@ -31,7 +31,7 @@ export default function TasksScreen() {
           refreshing={false}
           onRefresh={async () => {
             await refresh();
-            await tailorRefresh();
+            await refreshTailors();
           }}
         />
       }

@@ -4,6 +4,7 @@ import { drizzle } from "drizzle-orm/expo-sqlite";
 import { useMigrations } from "drizzle-orm/expo-sqlite/migrator";
 import migrations from "@/drizzle/migrations";
 import { useDrizzleStudio } from "expo-drizzle-studio-plugin";
+import { useTailorsStore } from "@/src/stores/useTailorsStore";
 
 // Define the type for the context value
 type DatabaseContextType = {
@@ -29,6 +30,10 @@ export const DatabaseProvider = ({
 
   if (error) {
     console.error("Database migration error:", error.message);
+  }
+
+  if (success) {
+    useTailorsStore.getState().init(db);
   }
 
   return (
