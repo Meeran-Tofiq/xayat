@@ -1,18 +1,37 @@
-import { useState, useEffect, useCallback } from "react";
+import { create } from "zustand";
 import { and, eq, gte, lte, like } from "drizzle-orm";
-import { useDatabase } from "@/src/context/DatabaseProvider";
 import { tasksTable, tailorsTable } from "@/db/schema";
 import { TaskFiltersState } from "@/src/components/TaskFilters";
+import { drizzle } from "drizzle-orm/expo-sqlite";
+import * as SQLite from "expo-sqlite";
 
-export function useTasks(filters: TaskFiltersState = {}) {
-  const { db } = useDatabase();
-  const [tasks, setTasks] = useState<
-    (typeof tasksTable.$inferSelect & { tailorName: string | null })[]
-  >([]);
-  const [loading, setLoading] = useState(false);
+type TaskWithTailor = typeof tasksTable.$inferSelect & {
+  tailorName: string | null;
+};
 
-  const refresh = useCallback(async () => {
-    setLoading(true);
+type TasksState = {
+  tasks: TaskWithTailor[];
+  loading: boolean;
+  filters: TaskFiltersState;
+  setFilters: (filters: TaskFiltersState) => void;
+  refresh: () => Promise<void>;
+  addTask: (data: typeof tasksTable.$inferInsert) => Promise<void>;
+};
+
+// Open your DB instance once
+const expo = SQLite.openDatabaseSync("db.db");
+const db = drizzle(expo);
+
+export const useTasksStore = create<TasksState>((set, get) => ({
+  tasks: [],
+  loading: false,
+  filters: {},
+
+  setFilters: (filters) => set({ filters }),
+
+  refresh: async () => {
+    const { filters } = get();
+    set({ loading: true });
 
     const conds: any[] = [];
     if (filters.metersMin !== undefined)
@@ -47,26 +66,14 @@ export function useTasks(filters: TaskFiltersState = {}) {
       })
       .from(tasksTable)
       .leftJoin(tailorsTable, eq(tasksTable.tailorId, tailorsTable.id))
-      .where(conds.length ? and(...conds) : undefined)) as (
-      | typeof tasksTable.$inferSelect
-      | { tailorName: string | null }
-    )[];
+      .where(conds.length ? and(...conds) : undefined)) as TaskWithTailor[];
 
-    setTasks(results as any);
-    setLoading(false);
-  }, [db, filters]);
+    set({ tasks: results, loading: false });
+  },
 
-  const addTask = useCallback(
-    async (data: typeof tasksTable.$inferInsert) => {
-      await db.insert(tasksTable).values(data);
-      await refresh();
-    },
-    [db, refresh],
-  );
-
-  useEffect(() => {
-    refresh();
-  }, [refresh]);
-
-  return { tasks, loading, refresh, addTask };
-}
+  addTask: async (data) => {
+    const { refresh } = get();
+    await db.insert(tasksTable).values(data);
+    await refresh();
+  },
+}));

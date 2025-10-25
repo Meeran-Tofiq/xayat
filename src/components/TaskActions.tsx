@@ -13,22 +13,22 @@ export default function TaskActions({
 }) {
   return (
     <View style={styles.actionsRow}>
-      {hasTailors ? (
-        <TouchableOpacity
-          style={[styles.addTaskButton, { flex: 1 }]}
-          onPress={onAddTask}
-        >
-          <Text style={styles.addTaskButtonText}>Add Task</Text>
-        </TouchableOpacity>
-      ) : (
-        <Text style={styles.warningText}>
-          ⚠️ You cannot add a task until you have added at least one tailor.
-        </Text>
+      {hasTailors && (
+        <>
+          <TouchableOpacity
+            style={[styles.addTaskButton, { flex: 1 }]}
+            onPress={onAddTask}
+          >
+            <Text style={styles.addTaskButtonText}>Add Task</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.filterButton}
+            onPress={onToggleFilters}
+          >
+            <FontAwesome name="filter" size={18} color="white" />
+          </TouchableOpacity>
+        </>
       )}
-
-      <TouchableOpacity style={styles.filterButton} onPress={onToggleFilters}>
-        <FontAwesome name="filter" size={18} color="white" />
-      </TouchableOpacity>
     </View>
   );
 }
