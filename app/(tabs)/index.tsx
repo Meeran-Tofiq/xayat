@@ -20,13 +20,21 @@ export default function TasksScreen() {
   const [filters, setFilters] = useState<TaskFiltersState>({});
 
   const { tasks, refresh, addTask } = useTasks(filters);
-  const { tailors } = useTailors();
+  const { tailors, refresh: tailorRefresh } = useTailors();
 
   return (
     <ScrollView
       style={styles.container}
       contentContainerStyle={styles.scrollContent}
-      refreshControl={<RefreshControl refreshing={false} onRefresh={refresh} />}
+      refreshControl={
+        <RefreshControl
+          refreshing={false}
+          onRefresh={async () => {
+            await refresh();
+            await tailorRefresh();
+          }}
+        />
+      }
     >
       <TaskActions
         hasTailors={tailors.length > 0}
