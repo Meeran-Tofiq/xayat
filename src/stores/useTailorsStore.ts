@@ -33,7 +33,15 @@ export const useTailorsStore = create<TailorsStore>((set, get) => {
 
     addTailor: async (data) => {
       if (!db) return;
-      await db.insert(tailorsTable).values(data);
+
+      // Convert empty strings to null for optional fields
+      const normalizedData = {
+        ...data,
+        phone: data.phone?.trim() === "" ? null : data.phone,
+        notes: data.notes?.trim() === "" ? null : data.notes,
+      };
+
+      await db.insert(tailorsTable).values(normalizedData);
       await get().refresh();
     },
   };
