@@ -9,17 +9,15 @@ import {
 import TaskForm from "@/src/components/TaskForm";
 import ModalWrapper from "@/src/components/ModalWrapper";
 import TaskCard from "@/src/components/TaskCard";
-import TaskFilters, { TaskFiltersState } from "@/src/components/TaskFilters";
-import { useTasks } from "@/src/hooks/useTasks";
+import TaskFilters from "@/src/components/TaskFilters";
+import { useTasksStore } from "@/src/stores/useTasksStore";
 import TaskActions from "@/src/components/TaskActions";
 import { useTailorsStore } from "@/src/stores/useTailorsStore";
 
 export default function TasksScreen() {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
-  const [filters, setFilters] = useState<TaskFiltersState>({});
-
-  const { tasks, refresh, addTask } = useTasks(filters);
+  const { tasks, refresh, addTask, setFilters, filters } = useTasksStore();
   const { tailors, refresh: refreshTailors } = useTailorsStore();
 
   return (
@@ -51,8 +49,14 @@ export default function TasksScreen() {
       {showFilters && (
         <TaskFilters
           filters={filters}
-          onChangeFilters={(f) => setFilters(f)}
-          onReset={() => setFilters({})}
+          onChangeFilters={(f) => {
+            setFilters(f);
+            refresh();
+          }}
+          onReset={() => {
+            setFilters({});
+            refresh();
+          }}
         />
       )}
 
